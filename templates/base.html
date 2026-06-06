@@ -1,23 +1,53 @@
+{% load static %}
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}ACashController{% endblock %}</title>
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}ACashController{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+  {% block extra_head %}{% endblock %}
 </head>
 <body>
-    {% if messages %}
-    <ul class="messages">
-        {% for message in messages %}
-        <li class="{{ message.tags }}">{{ message }}</li>
-        {% endfor %}
+
+  {% block navbar %}
+  <nav class="navbar">
+    <a href="{% url 'dashboard' %}" class="navbar-brand">
+      <span class="logo-mark">AC</span>
+      ACashController
+    </a>
+
+    <ul class="navbar-nav">
+      <li><a href="{% url 'dashboard' %}" {% if request.resolver_match.url_name == 'dashboard' %}class="active"{% endif %}>Dashboard</a></li>
+      <li><a href="#" {% if request.resolver_match.url_name == 'transacao_list' %}class="active"{% endif %}>Transações</a></li>
+      <li><a href="#" {% if request.resolver_match.url_name == 'categoria_list' %}class="active"{% endif %}>Categorias</a></li>
+      <li><a href="#" {% if request.resolver_match.url_name == 'meta_list' %}class="active"{% endif %}>Metas</a></li>
     </ul>
+
+    {% if user.is_authenticated %}
+    <div class="navbar-end">
+      <div class="avatar">{{ user.username|first|upper }}</div>
+      <span class="navbar-username">{{ user.username }}</span>
+      <a href="{% url 'logout' %}" class="navbar-sair">Sair</a>
+    </div>
     {% endif %}
+  </nav>
+  {% endblock navbar %}
 
+  {% if messages %}
+  <div class="alert-container">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <main class="page">
     {% block content %}{% endblock %}
+  </main>
 
-    {% block scripts %}{% endblock %}
+  {% block extra_js %}{% endblock %}
+
 </body>
 </html>

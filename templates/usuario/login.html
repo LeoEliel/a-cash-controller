@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Login — ACashController{% endblock %}
+
+{% block navbar %}{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+  <div class="auth-card">
+
+    <div class="auth-logo">
+      <div class="auth-logo-mark">AC</div>
+      <div class="auth-logo-title">ACashController</div>
+      <div class="auth-logo-sub">Faça login para continuar</div>
+    </div>
+
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}" style="margin-bottom:16px">{{ message }}</div>
+    {% endfor %}
+    {% endif %}
+
+    <form method="post" action="{% url 'login' %}">
+      {% csrf_token %}
+
+      <div class="form-group">
+        <label class="form-label" for="id_username">Usuário</label>
+        <input class="form-control" type="text" id="id_username" name="username"
+               placeholder="Seu usuário" autocomplete="username" required>
+        {{ form.username.errors }}
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="id_password">Senha</label>
+        <input class="form-control" type="password" id="id_password" name="password"
+               placeholder="••••••••" autocomplete="current-password" required>
+        {{ form.password.errors }}
+      </div>
+
+      {% if form.non_field_errors %}
+      <div class="alert alert-error" style="margin-bottom:12px">
+        {{ form.non_field_errors }}
+      </div>
+      {% endif %}
+
+      <button type="submit" class="btn btn-primary" style="margin-top: 8px;">
+        Entrar
+      </button>
+    </form>
+
+    <div class="auth-footer">
+      Não tem conta?
+      <a href="{% url 'cadastro' %}">Cadastre-se</a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
