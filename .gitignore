@@ -17,3 +17,7 @@ media/
 # OS
 .DS_Store
 .gh_token.env
+
+# Projeto
+telas/
+docs/
