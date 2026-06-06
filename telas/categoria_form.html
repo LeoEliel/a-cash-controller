@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<!-- ═══════════════════════════════════════════════════════════
+     categoria_form.html — Criar / Editar categoria
+     Django: {% extends "base.html" %}
+     Django: {% block title %}{% if form.instance.pk %}Editar{% else %}Nova{% endif %} Categoria — ACashController{% endblock %}
+     ═══════════════════════════════════════════════════════════ -->
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nova Categoria — ACashController</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <!-- Django: <link rel="stylesheet" href="{% static 'css/styles.css' %}"> -->
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Color picker customizado */
+    .color-picker-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    input[type="color"] {
+      width: 48px;
+      height: 44px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      padding: 3px;
+      background: var(--surface);
+      flex-shrink: 0;
+      transition: border-color .15s;
+    }
+    input[type="color"]:focus {
+      border-color: var(--green);
+      outline: none;
+    }
+    .color-preview {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .color-swatch-lg {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(0, 0, 0, 0.10);
+      transition: background .1s;
+      flex-shrink: 0;
+    }
+    .color-hex-label {
+      font-size: .875rem;
+      font-family: 'Courier New', monospace;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: .5px;
+    }
+    .color-hex-sub {
+      font-size: .75rem;
+      color: var(--text-light);
+      margin-top: 1px;
+    }
+
+    /* Preview de badge ao vivo */
+    .tipo-preview {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+      font-size: .8rem;
+      color: var(--text-muted);
+    }
+    .tipo-preview .badge { transition: background .2s, color .2s; }
+  </style>
+</head>
+<body>
+
+  <!-- ── NAVBAR ─────────────────────────────────────────────── -->
+  <nav class="navbar">
+    <a href="dashboard.html" class="navbar-brand">
+      <span class="logo-mark">AC</span>
+      ACashController
+    </a>
+    <ul class="navbar-nav">
+      <li><a href="dashboard.html">Dashboard</a></li>
+      <li><a href="transacoes.html">Transações</a></li>
+      <li><a href="categorias.html" class="active">Categorias</a></li>
+      <li><a href="metas.html">Metas</a></li>
+    </ul>
+    <div class="navbar-end">
+      <div class="avatar">U</div><!-- Django: {{ user.username|first|upper }} -->
+      <span class="navbar-username">usuario</span><!-- Django: {{ user.username }} -->
+      <a href="login.html" class="navbar-sair">Sair</a><!-- Django: {% url 'logout' %} -->
+    </div>
+  </nav>
+
+  <!-- Django: {% block content %} -->
+  <main class="page">
+    <div style="max-width: 520px;">
+
+      <!-- Cabeçalho -->
+      <div class="page-header">
+        <!-- Django: <h1 class="page-title">{% if form.instance.pk %}Editar Categoria{% else %}Nova Categoria{% endif %}</h1> -->
+        <h1 class="page-title">Nova Categoria</h1>
+        <a href="categorias.html" class="btn btn-outline btn-inline btn-sm">← Voltar</a>
+      </div>
+
+      <div class="card">
+
+        <!-- ── Área de erro de validação ───────────────────── -->
+        <!-- Django: {% if form.errors %} -->
+        <div class="alert-inline" id="erroValidacao">
+          <span>⚠</span>
+          <!-- Django: <span>Corrija os erros abaixo antes de salvar.</span> -->
+          <span>Corrija os erros abaixo antes de salvar. <em style="font-weight:400;">(visível apenas quando houver erro)</em></span>
+        </div>
+        <!-- Django: {% endif %} -->
+
+        <!-- Django: <form method="post" action="{% url 'categoria_salvar' %}"> -->
+        <form method="post" action="#">
+          <!-- Django: {% csrf_token %} -->
+          <!-- Django: {% if form.instance.pk %}<input type="hidden" name="id" value="{{ form.instance.pk }}">{% endif %} -->
+
+          <!-- Nome -->
+          <div class="form-group">
+            <label class="form-label" for="id_nome">Nome <span style="color:var(--red);">*</span></label>
+            <!-- Django: {{ form.nome }} -->
+            <input
+              class="form-control"
+              type="text"
+              id="id_nome"
+              name="nome"
+              placeholder="Ex.: Alimentação, Salário, Transporte..."
+              maxlength="100"
+              required
+            >
+            <!-- Django: {% if form.nome.errors %}<span class="form-hint" style="color:var(--red);">{{ form.nome.errors|join:", " }}</span>{% endif %} -->
+          </div>
+
+          <!-- Tipo -->
+          <div class="form-group">
+            <label class="form-label" for="id_tipo">Tipo <span style="color:var(--red);">*</span></label>
+            <!-- Django: {{ form.tipo }} -->
+            <select class="form-control" id="id_tipo" name="tipo" required>
+              <option value="" disabled selected>Selecione o tipo...</option>
+              <option value="S">Saída</option>
+              <option value="E">Entrada</option>
+            </select>
+            <!-- Django: {% if form.tipo.errors %}<span class="form-hint" style="color:var(--red);">{{ form.tipo.errors|join:", " }}</span>{% endif %} -->
+            <!-- Preview ao vivo do badge -->
+            <div class="tipo-preview" id="tipoPreview" style="display: none;">
+              As transações desta categoria serão classificadas como
+              <span class="badge" id="tipoBadge"></span>
+            </div>
+            <span class="form-hint">
+              As transações herdam o tipo da categoria escolhida.
+            </span>
+          </div>
+
+          <!-- Cor -->
+          <div class="form-group">
+            <label class="form-label" for="id_cor">Cor</label>
+            <!-- Django: {{ form.cor }} -->
+            <div class="color-picker-wrap">
+              <input
+                type="color"
+                id="id_cor"
+                name="cor"
+                value="#1D9E75"
+                title="Escolha uma cor para a categoria"
+              >
+              <div class="color-preview">
+                <span class="color-swatch-lg" id="colorSwatch" style="background: #1D9E75;"></span>
+                <div>
+                  <div class="color-hex-label" id="colorHex">#1D9E75</div>
+                  <div class="color-hex-sub">Clique no quadrado para alterar</div>
+                </div>
+              </div>
+            </div>
+            <!-- Django: {% if form.cor.errors %}<span class="form-hint" style="color:var(--red);">{{ form.cor.errors|join:", " }}</span>{% endif %} -->
+          </div>
+
+          <!-- Ícone (opcional) -->
+          <div class="form-group">
+            <label class="form-label" for="id_icone">Ícone <span style="font-weight:400;color:var(--text-light);">(opcional)</span></label>
+            <!-- Django: {{ form.icone }} -->
+            <input
+              class="form-control"
+              type="text"
+              id="id_icone"
+              name="icone"
+              placeholder="Ex.: cart, home, briefcase, heart-pulse..."
+              maxlength="50"
+            >
+            <span class="form-hint">Nome do ícone que será exibido na listagem de categorias.</span>
+            <!-- Django: {% if form.icone.errors %}<span class="form-hint" style="color:var(--red);">{{ form.icone.errors|join:", " }}</span>{% endif %} -->
+          </div>
+
+          <!-- Ações -->
+          <div class="form-actions" style="margin-top: 8px;">
+            <button type="submit" class="btn btn-primary">
+              <!-- Django: {% if form.instance.pk %}Salvar Alterações{% else %}Salvar Categoria{% endif %} -->
+              Salvar Categoria
+            </button>
+            <a href="categorias.html" class="btn btn-outline">Cancelar</a>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </main>
+  <!-- Django: {% endblock %} -->
+
+  <!-- ── JS mínimo: sincroniza color picker ─────────────────── -->
+  <!-- Django: {% block extra_js %} -->
+  <script>
+    (function () {
+      const colorInput  = document.getElementById('id_cor');
+      const colorHex    = document.getElementById('colorHex');
+      const colorSwatch = document.getElementById('colorSwatch');
+      const tipoSelect  = document.getElementById('id_tipo');
+      const tipoPreview = document.getElementById('tipoPreview');
+      const tipoBadge   = document.getElementById('tipoBadge');
+
+      /* Atualiza swatch + hex ao mover o color picker */
+      function atualizarCor() {
+        const val = colorInput.value.toUpperCase();
+        colorHex.textContent    = val;
+        colorSwatch.style.background = val;
+      }
+      colorInput.addEventListener('input', atualizarCor);
+
+      /* Preview do badge de tipo */
+      function atualizarTipo() {
+        const val = tipoSelect.value;
+        if (!val) {
+          tipoPreview.style.display = 'none';
+          return;
+        }
+        tipoPreview.style.display = 'flex';
+        if (val === 'E') {
+          tipoBadge.textContent  = 'Entrada';
+          tipoBadge.className    = 'badge badge-entrada';
+        } else {
+          tipoBadge.textContent  = 'Saída';
+          tipoBadge.className    = 'badge badge-saida';
+        }
+      }
+      tipoSelect.addEventListener('change', atualizarTipo);
+    })();
+  </script>
+  <!-- Django: {% endblock %} -->
+
+</body>
+</html>

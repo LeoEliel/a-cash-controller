@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ACashController — Wireframes</title>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <script type="text/babel" src="design-canvas.jsx"></script>
+  <script type="text/babel" src="tweaks-panel.jsx"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #1c1c1c; }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+
+// ─── Design tokens ───────────────────────────────────────────
+const WF = {
+  font: "'Poppins', sans-serif",
+  border: '1.5px solid #c8c8c4',
+  borderDash: '2px dashed #c0c0bc',
+  bg: '#ffffff',
+  surface: '#f4f4f1',
+  text: '#2a2a28',
+  muted: '#888884',
+  faint: '#dededa',
+  green: '#1D9E75',
+  blue: '#2E6FB7',
+  red: '#C25E3A',
+  r: 6,
+};
+
+// ─── Shared WF primitives ─────────────────────────────────────
+
+const WfNavbar = ({ active = 'Dashboard' }) => (
+  <div style={{
+    background: '#e6e6e3',
+    borderBottom: WF.border,
+    padding: '9px 18px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 14,
+    fontFamily: WF.font,
+    flexShrink: 0,
+  }}>
+    <span style={{ fontWeight: 700, fontSize: 15, color: WF.green, marginRight: 6 }}>
+      ● ACashController
+    </span>
+    {['Dashboard','Transações','Categorias','Metas','Sair'].map(item => (
+      <span key={item} style={{
+        padding: '2px 10px',
+        background: item === active ? WF.green : 'transparent',
+        color: item === active ? '#fff' : WF.muted,
+        borderRadius: 4,
+        border: item === active ? 'none' : '1px solid #ccc',
+        fontSize: 12,
+        fontFamily: WF.font,
+        whiteSpace: 'nowrap',
+      }}>{item}</span>
+    ))}
+  </div>
+);
+
+const WfCard = ({ label, value, sub, accent, wide }) => (
+  <div style={{
+    border: WF.border,
+    borderTop: `3px solid ${accent || WF.faint}`,
+    borderRadius: WF.r,
+    padding: '12px 16px',
+    background: WF.bg,
+    flex: wide ? 'none' : 1,
+    width: wide ? '100%' : undefined,
+    fontFamily: WF.font,
+  }}>
+    <div style={{ fontSize: 11, color: WF.muted, textTransform: 'uppercase', letterSpacing: 0.5 }}>{label}</div>
+    <div style={{ fontSize: 22, fontWeight: 700, color: accent || WF.text, marginTop: 2 }}>{value}</div>
+    {sub && <div style={{ fontSize: 11, color: WF.muted, marginTop: 2 }}>{sub}</div>}
+  </div>
+);
+
+const HatchBox = ({ label, sub, type, width = '100%', height = 160 }) => (
+  <div style={{
+    border: WF.borderDash,
+    borderRadius: WF.r,
+    width,
+    height,
+    background: `repeating-linear-gradient(135deg, #f2f2ef 0px, #f2f2ef 6px, #ebebе8 6px, #eaeae7 12px)`,
+    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+    fontFamily: WF.font, color: WF.muted, gap: 5, flexShrink: 0,
+  }}>
+    <svg width="48" height="28" viewBox="0 0 48 28" style={{ opacity: 0.35 }}>
+      {type === 'pie'
+        ? <><circle cx="14" cy="14" r="12" fill="none" stroke="#555" strokeWidth="6" strokeDasharray="38 37.7"/><circle cx="14" cy="14" r="12" fill="none" stroke="#aaa" strokeWidth="6" strokeDasharray="22 37.7" strokeDashoffset="-38"/><circle cx="14" cy="14" r="12" fill="none" stroke="#777" strokeWidth="6" strokeDasharray="15 37.7" strokeDashoffset="-60"/><rect x="30" y="5" width="8" height="4" rx="1" fill="#555"/><rect x="30" y="13" width="8" height="4" rx="1" fill="#aaa"/><rect x="30" y="21" width="8" height="4" rx="1" fill="#777"/></>
+        : <polyline points="0,22 10,16 20,18 28,9 36,13 48,4" fill="none" stroke="#555" strokeWidth="2"/>}
+    </svg>
+    <span style={{ fontSize: 13, fontWeight: 600, color: '#777' }}>{label}</span>
+    {sub && <span style={{ fontSize: 10, color: '#aaa' }}>{sub}</span>}
+  </div>
+);
+
+const WfBtn = ({ label, variant = 'primary', small }) => {
+  const bg = variant === 'primary' ? WF.green : variant === 'secondary' ? WF.blue : 'transparent';
+  const col = variant === 'ghost' ? WF.muted : '#fff';
+  const bdr = variant === 'ghost' ? `1px solid ${WF.faint}` : 'none';
+  return (
+    <div style={{
+      display: 'inline-flex', alignItems: 'center',
+      padding: small ? '4px 11px' : '8px 18px',
+      background: bg, color: col, border: bdr,
+      borderRadius: 5, fontFamily: WF.font,
+      fontSize: small ? 11 : 13, whiteSpace: 'nowrap', cursor: 'default',
+    }}>{label}</div>
+  );
+};
+
+const WfField = ({ label, placeholder, note, half }) => (
+  <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontFamily: WF.font, flex: half ? 1 : undefined }}>
+    <label style={{ fontSize: 12, color: WF.muted, fontWeight: 600 }}>{label}</label>
+    <div style={{
+      border: WF.border, borderRadius: 5, padding: '8px 12px',
+      background: WF.bg, fontSize: 13, color: '#bbb',
+    }}>{placeholder || '...'}</div>
+    {note && <span style={{ fontSize: 10, color: '#aaa', fontStyle: 'italic' }}>{note}</span>}
+  </div>
+);
+
+const WfSelect = ({ label, note }) => (
+  <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontFamily: WF.font }}>
+    <label style={{ fontSize: 12, color: WF.muted, fontWeight: 600 }}>{label}</label>
+    <div style={{
+      border: WF.border, borderRadius: 5, padding: '8px 12px',
+      background: WF.bg, fontSize: 13, color: '#bbb',
+      display: 'flex', justifyContent: 'space-between',
+    }}>
+      <span>Selecione...</span><span style={{ color: WF.muted }}>▾</span>
+    </div>
+    {note && <span style={{ fontSize: 10, color: '#aaa', fontStyle: 'italic' }}>{note}</span>}
+  </div>
+);
+
+const Ann = ({ children }) => (
+  <div style={{
+    fontFamily: "'Caveat', cursive", fontSize: 12, color: '#999',
+    fontStyle: 'italic', marginBottom: 5, marginTop: 2,
+  }}>↳ {children}</div>
+);
+
+const WfDivider = () => (
+  <div style={{ height: 1, background: WF.faint, margin: '4px 0' }} />
+);
+
+const Badge = ({ label, color }) => (
+  <span style={{
+    background: color + '20', color, borderRadius: 10,
+    padding: '2px 8px', fontSize: 10, fontWeight: 700,
+    fontFamily: WF.font, whiteSpace: 'nowrap',
+  }}>{label}</span>
+);
+
+// ─── DASHBOARD A — Clássico ──────────────────────────────────
+const DashboardA = () => (
+  <div style={{ background: WF.surface, display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <WfNavbar active="Dashboard" />
+    <div style={{ padding: '18px 22px', display: 'flex', flexDirection: 'column', gap: 14, flex: 1 }}>
+
+      <Ann>3 cards de resumo do mês — {'{{ saldo }}'} {'{{ entradas }}'} {'{{ saidas }}'}</Ann>
+      <div style={{ display: 'flex', gap: 12 }}>
+        <WfCard label="Saldo Atual" value="R$ 15.420,00" accent={WF.blue} sub="Atualizado agora" />
+        <WfCard label="Total de Entradas" value="R$ 8.300,00" accent={WF.green} sub="Junho 2026" />
+        <WfCard label="Total de Saídas" value="R$ 3.210,00" accent={WF.red} sub="Junho 2026" />
+      </div>
+
+      <Ann>Gráficos Chart.js — dados estáticos no preview, depois via JSON do Django</Ann>
+      <div style={{ display: 'flex', gap: 12, flex: 1 }}>
+        <HatchBox label="Evolução do Patrimônio" sub="canvas#chartPatrimonio" type="line" height={190} />
+        <HatchBox label="Gastos por Categoria" sub="canvas#chartCategorias" type="pie" width={210} height={190} />
+      </div>
+
+      <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+        <WfBtn label="↓ Exportar CSV" variant="ghost" small />
+        <WfBtn label="↓ Exportar PDF" variant="ghost" small />
+      </div>
+    </div>
+  </div>
+);
+
+// ─── DASHBOARD B — Hero Balance ──────────────────────────────
+const DashboardB = () => (
+  <div style={{ background: WF.surface, display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <WfNavbar active="Dashboard" />
+    <div style={{ padding: '18px 22px', display: 'flex', flexDirection: 'column', gap: 13, flex: 1 }}>
+
+      <Ann>Card hero — destaque visual para o saldo atual</Ann>
+      <div style={{
+        border: WF.border, borderLeft: `5px solid ${WF.green}`, borderRadius: WF.r,
+        padding: '16px 20px', background: WF.bg, fontFamily: WF.font,
+      }}>
+        <div style={{ fontSize: 11, color: WF.muted, textTransform: 'uppercase', letterSpacing: 0.5 }}>Saldo Atual — Junho 2026</div>
+        <div style={{ fontSize: 32, fontWeight: 700, color: WF.green }}>R$ 15.420,00</div>
+        <div style={{ fontSize: 11, color: WF.muted, marginTop: 3 }}>▲ +12% vs mês anterior</div>
+      </div>
+
+      <div style={{ display: 'flex', gap: 12 }}>
+        <WfCard label="Total de Entradas" value="R$ 8.300,00" accent={WF.green} sub="Junho 2026" />
+        <WfCard label="Total de Saídas" value="R$ 3.210,00" accent={WF.red} sub="Junho 2026" />
+      </div>
+
+      <HatchBox label="Evolução do Patrimônio" sub="canvas#chartPatrimonio  (largura total)" type="line" height={150} />
+
+      <div style={{ display: 'flex', gap: 12, flex: 1 }}>
+        <HatchBox label="Gastos por Categoria" sub="canvas#chartCategorias" type="pie" width={190} height={165} />
+        <div style={{ flex: 1, border: WF.border, borderRadius: WF.r, background: WF.bg, padding: '10px 14px', fontFamily: WF.font }}>
+          <div style={{ fontSize: 11, color: WF.muted, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 }}>Últimas Transações</div>
+          {[
+            ['Supermercado', 'Alimentação', '-R$ 380,00', WF.red],
+            ['Salário XYZ', 'Renda', '+R$ 5.000,00', WF.green],
+            ['Netflix', 'Lazer', '-R$ 44,90', WF.red],
+            ['Freelance Design', 'Renda', '+R$ 1.200,00', WF.green],
+          ].map(([d, c, v, col], i) => (
+            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 0', borderBottom: i < 3 ? `1px solid ${WF.faint}` : 'none', fontSize: 11 }}>
+              <div>
+                <div style={{ color: WF.text }}>{d}</div>
+                <div style={{ color: WF.muted, fontSize: 9 }}>{c}</div>
+              </div>
+              <div style={{ color: col, fontWeight: 700 }}>{v}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+        <WfBtn label="↓ Exportar CSV" variant="ghost" small />
+        <WfBtn label="↓ Exportar PDF" variant="ghost" small />
+      </div>
+    </div>
+  </div>
+);
+
+// ─── DASHBOARD C — Split Panel ───────────────────────────────
+const DashboardC = () => (
+  <div style={{ background: WF.surface, display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <WfNavbar active="Dashboard" />
+    <div style={{ padding: '18px 22px', display: 'flex', gap: 16, flex: 1 }}>
+
+      {/* Left column */}
+      <div style={{ width: 210, display: 'flex', flexDirection: 'column', gap: 10, flexShrink: 0 }}>
+        <Ann>KPIs na lateral</Ann>
+        <WfCard label="Saldo Atual" value="R$ 15.420,00" accent={WF.blue} sub="Agora" />
+        <WfCard label="Entradas" value="R$ 8.300,00" accent={WF.green} sub="Jun 2026" />
+        <WfCard label="Saídas" value="R$ 3.210,00" accent={WF.red} sub="Jun 2026" />
+        <WfDivider />
+        <Ann>Ações rápidas</Ann>
+        <WfBtn label="+ Nova Transação" variant="primary" small />
+        <WfBtn label="+ Nova Meta" variant="secondary" small />
+        <WfDivider />
+        <div style={{ display: 'flex', gap: 6 }}>
+          <WfBtn label="↓ CSV" variant="ghost" small />
+          <WfBtn label="↓ PDF" variant="ghost" small />
+        </div>
+      </div>
+
+      {/* Right charts */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 13 }}>
+        <Ann>Área de gráficos expandida</Ann>
+        <HatchBox label="Evolução do Patrimônio" sub="canvas#chartPatrimonio" type="line" height={195} />
+        <div style={{ display: 'flex', gap: 12, flex: 1 }}>
+          <HatchBox label="Gastos por Categoria" sub="canvas#chartCategorias" type="pie" width={185} height={185} />
+          <div style={{ flex: 1, border: WF.border, borderRadius: WF.r, background: WF.bg, padding: '10px 14px', fontFamily: WF.font }}>
+            <div style={{ fontSize: 11, color: WF.muted, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Top Categorias</div>
+            {[['Alimentação',35],['Moradia',28],['Transporte',15],['Lazer',12],['Saúde',10]].map(([cat, pct], i) => (
+              <div key={i} style={{ marginBottom: 10 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginBottom: 3 }}>
+                  <span style={{ color: WF.text }}>{cat}</span>
+                  <span style={{ color: WF.muted }}>{pct}%</span>
+                </div>
+                <div style={{ background: '#eee', borderRadius: 4, height: 7 }}>
+                  <div style={{ background: WF.red, width: `${pct}%`, height: '100%', borderRadius: 4 }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+// ─── TRANSAÇÕES ──────────────────────────────────────────────
+const Transacoes = () => (
+  <div style={{ background: WF.surface, display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <WfNavbar active="Transações" />
+    <div style={{ padding: '18px 22px', display: 'flex', flexDirection: 'column', gap: 13, flex: 1 }}>
+
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <span style={{ fontFamily: WF.font, fontSize: 17, fontWeight: 700, color: WF.text }}>Transações</span>
+        <WfBtn label="+ Nova Transação" variant="primary" small />
+      </div>
+
+      <Ann>Filtros de período — {'{{ mes_atual }}'} {'{{ ano_atual }}'}</Ann>
+      <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+        {['Mês ▾  Junho','Ano ▾  2026'].map((f, i) => (
+          <div key={i} style={{ border: WF.border, borderRadius: 5, padding: '5px 12px', background: WF.bg, fontSize: 12, color: WF.muted, fontFamily: WF.font }}>{f}</div>
+        ))}
+        <div style={{ border: WF.border, borderRadius: 5, padding: '5px 12px', background: WF.bg, fontSize: 12, color: '#bbb', fontFamily: WF.font, flex: 1 }}>Buscar descrição...</div>
+      </div>
+
+      <Ann>{'<!-- {% for t in transacoes %} -->'}  Tipo = badge derivado da categoria (verde/vermelho)</Ann>
+      <div style={{ border: WF.border, borderRadius: WF.r, background: WF.bg, overflow: 'hidden', fontFamily: WF.font }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr 130px 90px 120px 70px', background: '#efefec', borderBottom: WF.border, fontSize: 11, color: WF.muted, padding: '8px 14px', gap: 8 }}>
+          <span>DATA</span><span>DESCRIÇÃO</span><span>CATEGORIA</span><span>TIPO</span><span>VALOR</span><span>AÇÕES</span>
+        </div>
+        {[
+          ['05/06','Supermercado Pão de Açúcar','Alimentação','Saída','-R$ 380,00', WF.red],
+          ['03/06','Salário Empresa XYZ','Renda','Entrada','+R$ 5.000,00', WF.green],
+          ['01/06','Netflix','Lazer','Saída','-R$ 44,90', WF.red],
+          ['28/05','Freelance Design','Renda','Entrada','+R$ 1.200,00', WF.green],
+          ['25/05','Conta de Luz','Moradia','Saída','-R$ 187,30', WF.red],
+        ].map(([data, desc, cat, tipo, val, col], i) => (
+          <div key={i} style={{
+            display: 'grid', gridTemplateColumns: '80px 1fr 130px 90px 120px 70px',
+            padding: '8px 14px', gap: 8, fontSize: 12, alignItems: 'center',
+            background: i % 2 === 0 ? WF.bg : '#fafaf8',
+            borderBottom: i < 4 ? `1px solid ${WF.faint}` : 'none',
+          }}>
+            <span style={{ color: WF.muted }}>{data}</span>
+            <span style={{ color: WF.text }}>{desc}</span>
+            <span style={{ color: WF.muted, fontSize: 11 }}>{cat}</span>
+            <span><Badge label={tipo} color={col} /></span>
+            <span style={{ color: col, fontWeight: 700 }}>{val}</span>
+            <span style={{ display: 'flex', gap: 8, color: WF.muted, fontSize: 13 }}>
+              <span style={{ cursor: 'default' }}>✎</span>
+              <span style={{ cursor: 'default', color: WF.red }}>✕</span>
+            </span>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ display: 'flex', gap: 5, justifyContent: 'center', marginTop: 2 }}>
+        {['‹','1','2','3','›'].map((p, i) => (
+          <div key={i} style={{
+            width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            border: WF.border, borderRadius: 4, fontFamily: WF.font, fontSize: 12,
+            background: p === '1' ? WF.green : WF.bg, color: p === '1' ? '#fff' : WF.muted,
+          }}>{p}</div>
+        ))}
+      </div>
+    </div>
+  </div>
+);
+
+// ─── FORMULÁRIO DE TRANSAÇÃO ─────────────────────────────────
+const TransacaoForm = () => (
+  <div style={{ background: WF.surface, display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <WfNavbar active="Transações" />
+    <div style={{ padding: '22px 26px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <span style={{ fontFamily: WF.font, fontSize: 17, fontWeight: 700, color: WF.text }}>Nova Transação</span>
+      <Ann>Sem campo Entrada/Saída — o tipo vem da categoria escolhida</Ann>
+
+      {/* Inline error */}
+      <div style={{
+        border: `1.5px solid ${WF.red}`, borderRadius: WF.r,
+        padding: '9px 14px', background: WF.red + '10',
+        fontFamily: WF.font, fontSize: 12, color: WF.red,
+      }}>
+        ⚠ Saldo insuficiente para esta transação.
+        <span style={{ color: WF.muted }}> (visível apenas quando necessário)</span>
+      </div>
+
+      <WfField label="Descrição" placeholder="ex: Supermercado Pão de Açúcar" />
+
+      <div style={{ display: 'flex', gap: 12 }}>
+        <WfField label="Valor (R$)" placeholder="0,00" half />
+        <WfField label="Data" placeholder="05/06/2026" half />
+      </div>
+
+      <WfSelect
+        label="Categoria"
+        note="O tipo (Entrada / Saída) é definido automaticamente pela categoria selecionada."
+      />
+
+      <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
+        <WfBtn label="Salvar Transação" variant="primary" />
+        <WfBtn label="Cancelar" variant="ghost" />
+      </div>
+    </div>
+  </div>
+);
+
+// ─── METAS ───────────────────────────────────────────────────
+const Metas = () => (
+  <div style={{ background: WF.surface, display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <WfNavbar active="Metas" />
+    <div style={{ padding: '18px 22px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <span style={{ fontFamily: WF.font, fontSize: 17, fontWeight: 700, color: WF.text }}>Metas de Economia</span>
+        <WfBtn label="+ Nova Meta" variant="primary" small />
+      </div>
+      <Ann>{'<!-- {% for meta in metas %} -->'}  Cards com barra de progresso</Ann>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
+        {[
+          { nome: 'Fundo de Emergência', atual: 8000, alvo: 20000, prazo: 'Dez 2026' },
+          { nome: 'Viagem Europa', atual: 3500, alvo: 15000, prazo: 'Jul 2027' },
+          { nome: 'Notebook Novo', atual: 2800, alvo: 4000, prazo: 'Ago 2026' },
+        ].map((m, i) => {
+          const pct = Math.round((m.atual / m.alvo) * 100);
+          return (
+            <div key={i} style={{ border: WF.border, borderRadius: WF.r, background: WF.bg, padding: '14px 16px', fontFamily: WF.font }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: WF.text, marginBottom: 8 }}>{m.nome}</div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: WF.muted, marginBottom: 6 }}>
+                <span style={{ color: WF.green, fontWeight: 700 }}>R$ {m.atual.toLocaleString('pt-BR')}</span>
+                <span>de R$ {m.alvo.toLocaleString('pt-BR')}</span>
+              </div>
+              <div style={{ background: '#eee', borderRadius: 6, height: 9, marginBottom: 6 }}>
+                <div style={{ background: WF.green, width: `${pct}%`, height: '100%', borderRadius: 6 }} />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginBottom: 10 }}>
+                <span style={{ color: WF.green, fontWeight: 600 }}>{pct}% concluído</span>
+                <span style={{ color: WF.muted }}>Prazo: {m.prazo}</span>
+              </div>
+              <WfDivider />
+              <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
+                <WfBtn label="Editar" variant="ghost" small />
+                <WfBtn label="Excluir" variant="ghost" small />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  </div>
+);
+
+// ─── CATEGORIAS ─────────────────────────────────────────────
+const Categorias = () => (
+  <div style={{ background: WF.surface, display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <WfNavbar active="Categorias" />
+    <div style={{ padding: '18px 22px', display: 'flex', flexDirection: 'column', gap: 13, flex: 1 }}>
+
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <span style={{ fontFamily: WF.font, fontSize: 17, fontWeight: 700, color: WF.text }}>Categorias</span>
+        <WfBtn label="+ Nova Categoria" variant="primary" small />
+      </div>
+
+      <Ann>{'<!-- {% for categoria in categorias %} -->'}  Swatch de cor + badge derivado do tipo</Ann>
+      <div style={{ border: WF.border, borderRadius: WF.r, background: WF.bg, overflow: 'hidden', fontFamily: WF.font }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 90px 130px 90px 70px', background: '#efefec', borderBottom: WF.border, fontSize: 11, color: WF.muted, padding: '8px 14px', gap: 8 }}>
+          <span>NOME</span><span>TIPO</span><span>COR</span><span>ÍCONE</span><span>AÇÕES</span>
+        </div>
+        {[
+          ['Salário',      'Entrada', WF.green,   'briefcase'],
+          ['Freelance',    'Entrada', WF.blue,    'laptop'],
+          ['Alimentação',  'Saída',   WF.red,     'cart'],
+          ['Moradia',      'Saída',   '#7c3aed',  'home'],
+          ['Assinaturas',  'Saída',   '#d97706',  '—'],
+          ['Saúde',        'Saída',   '#dc2626',  'heart-pulse'],
+        ].map(([nome, tipo, cor, icone], i) => (
+          <div key={i} style={{
+            display: 'grid', gridTemplateColumns: '1fr 90px 130px 90px 70px',
+            padding: '8px 14px', gap: 8, fontSize: 12, alignItems: 'center',
+            background: i % 2 === 0 ? WF.bg : '#fafaf8',
+            borderBottom: i < 5 ? `1px solid ${WF.faint}` : 'none',
+          }}>
+            <span style={{ color: WF.text, fontWeight: 500 }}>{nome}</span>
+            <span><Badge label={tipo} color={tipo === 'Entrada' ? WF.green : WF.red} /></span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+              <span style={{ width: 16, height: 16, borderRadius: 3, background: cor, border: '1px solid rgba(0,0,0,.1)', flexShrink: 0, display: 'inline-block' }} />
+              <span style={{ fontSize: 10, color: WF.muted, fontFamily: 'monospace' }}>{cor.toUpperCase()}</span>
+            </span>
+            <span style={{ fontSize: 11, color: WF.muted, fontStyle: icone === '—' ? 'italic' : 'normal' }}>{icone}</span>
+            <span style={{ display: 'flex', gap: 8, color: WF.muted, fontSize: 13 }}>
+              <span>✎</span><span style={{ color: WF.red }}>✕</span>
+            </span>
+          </div>
+        ))}
+      </div>
+
+      <span style={{ fontSize: 10, color: '#bbb', fontFamily: WF.font, fontStyle: 'italic' }}>
+        O tipo de uma transação é definido pela categoria escolhida — não há campo separado no lançamento.
+      </span>
+    </div>
+  </div>
+);
+
+// ─── FORMULÁRIO DE CATEGORIA ──────────────────────────────────
+const CategoriaForm = () => (
+  <div style={{ background: WF.surface, display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <WfNavbar active="Categorias" />
+    <div style={{ padding: '22px 26px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <span style={{ fontFamily: WF.font, fontSize: 17, fontWeight: 700, color: WF.text }}>Nova Categoria</span>
+      <Ann>tipo (Entrada/Saída) definido aqui — transações herdam automaticamente</Ann>
+
+      <div style={{
+        border: `1.5px solid ${WF.red}`, borderRadius: WF.r,
+        padding: '9px 14px', background: WF.red + '10',
+        fontFamily: WF.font, fontSize: 12, color: WF.red,
+      }}>
+        ⚠ Corrija os erros abaixo antes de salvar.
+        <span style={{ color: WF.muted }}> (visível apenas quando houver erro)</span>
+      </div>
+
+      <WfField label="Nome *" placeholder="ex: Alimentação, Salário, Transporte..." />
+      <WfSelect label="Tipo *" note="Define se transações desta categoria são Entrada ou Saída." />
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4, fontFamily: WF.font }}>
+        <label style={{ fontSize: 12, color: WF.muted, fontWeight: 600 }}>Cor</label>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ width: 48, height: 44, borderRadius: 6, background: WF.green, border: WF.border, cursor: 'pointer', flexShrink: 0 }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ width: 34, height: 34, borderRadius: 6, background: WF.green, border: '1px solid rgba(0,0,0,.1)', flexShrink: 0 }} />
+            <div>
+              <div style={{ fontSize: 13, fontFamily: 'monospace', fontWeight: 600, color: WF.text }}>#1D9E75</div>
+              <div style={{ fontSize: 10, color: '#bbb' }}>Clique para alterar</div>
+            </div>
+          </div>
+        </div>
+        <Ann>color picker nativo + swatch + hex atualizado ao vivo via JS</Ann>
+      </div>
+
+      <WfField label="Ícone (opcional)" placeholder="ex: cart, home, briefcase..." note="Nome descritivo do ícone para exibir na listagem." />
+
+      <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
+        <WfBtn label="Salvar Categoria" variant="primary" />
+        <WfBtn label="Cancelar" variant="ghost" />
+      </div>
+    </div>
+  </div>
+);
+
+// ─── CONFIRMAÇÃO DE EXCLUSÃO ───────────────────────────────
+const TransacaoConfirmDelete = () => (
+  <div style={{ background: WF.surface, display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <WfNavbar active="Transações" />
+    <div style={{ padding: '22px 26px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <span style={{ fontFamily: WF.font, fontSize: 17, fontWeight: 700, color: WF.text }}>Excluir Transação</span>
+        <WfBtn label="← Voltar" variant="ghost" small />
+      </div>
+      <Ann>Bloco de resumo — mesma linguagem visual da tabela de transações</Ann>
+      <div style={{ border: WF.border, borderRadius: WF.r, background: WF.surface, padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 8, fontFamily: WF.font }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span style={{ fontWeight: 600, fontSize: 14, color: WF.text }}>Supermercado Pão de Açúcar</span>
+          <Badge label="Saída" color={WF.red} />
+        </div>
+        <div style={{ display: 'flex', gap: 16 }}>
+          <span style={{ fontSize: 11, color: WF.muted }}>Alimentação</span>
+          <span style={{ fontSize: 11, color: WF.muted }}>05/06/2026</span>
+        </div>
+        <span style={{ fontSize: 15, fontWeight: 700, color: WF.red }}>−R$ 380,00</span>
+      </div>
+      <p style={{ fontFamily: WF.font, fontSize: 12, color: WF.text, lineHeight: 1.6 }}>
+        Tem certeza que deseja excluir esta transação?
+        <span style={{ color: WF.red, fontWeight: 600 }}> Esta ação não pode ser desfeita.</span>
+      </p>
+      <Ann>POST form com csrf_token — action aponta para url transacao_excluir + object.pk</Ann>
+      <div style={{ display: 'flex', gap: 10 }}>
+        <WfBtn label="Excluir" variant="ghost" />
+        <WfBtn label="Cancelar" variant="ghost" />
+      </div>
+    </div>
+  </div>
+);
+
+// ─── FORMULÁRIO DE META ───────────────────────────────────────
+const MetaForm = () => (
+  <div style={{ background: WF.surface, display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <WfNavbar active="Metas" />
+    <div style={{ padding: '22px 26px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <span style={{ fontFamily: WF.font, fontSize: 17, fontWeight: 700, color: WF.text }}>Nova Meta</span>
+        <WfBtn label="← Voltar" variant="ghost" small />
+      </div>
+      <div style={{ border: `1.5px solid ${WF.red}`, borderRadius: WF.r, padding: '9px 14px', background: WF.red + '10', fontFamily: WF.font, fontSize: 12, color: WF.red }}>
+        ⚠ Corrija os erros abaixo antes de salvar.
+        <span style={{ color: WF.muted }}> (visível apenas quando houver erro)</span>
+      </div>
+      <WfField label="Nome *" placeholder="ex: Fundo de Emergência, Viagem..." />
+      <div style={{ display: 'flex', gap: 12 }}>
+        <WfField label="Valor Alvo (R$) *" placeholder="20000.00" half />
+        <WfField label="Valor Atual (R$)" placeholder="0.00" half />
+      </div>
+      <Ann>Preview de progresso ao vivo — atualiza conforme valores digitados (JS mínimo)</Ann>
+      <div style={{ fontFamily: WF.font }}>
+        <div style={{ fontSize: 11, color: WF.muted, marginBottom: 5 }}>Progresso atual</div>
+        <div style={{ background: WF.faint, borderRadius: 6, height: 10, marginBottom: 5 }}>
+          <div style={{ background: WF.green, width: '40%', height: '100%', borderRadius: 6 }} />
+        </div>
+        <span style={{ fontSize: 11, color: WF.green, fontWeight: 600 }}>40% concluído</span>
+      </div>
+      <WfField label="Prazo (opcional)" placeholder="dd/mm/aaaa" />
+      <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
+        <WfBtn label="Salvar Meta" variant="primary" />
+        <WfBtn label="Cancelar" variant="ghost" />
+      </div>
+    </div>
+  </div>
+);
+
+// ─── EXTRATO PDF ──────────────────────────────────────────────
+const ExtratoPdf = () => (
+  <div style={{ background: '#fff', display: 'flex', flexDirection: 'column', height: '100%', padding: '22px 26px', fontFamily: WF.font }}>
+    <Ann>Renderizado por xhtml2pdf (pisa) no servidor — sem navbar, sem CDN, sem JS</Ann>
+
+    {/* Cabeçalho */}
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: `2px solid ${WF.green}`, paddingBottom: 12, marginBottom: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ width: 34, height: 34, background: WF.green, color: '#fff', borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 12, flexShrink: 0 }}>AC</div>
+        <div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: WF.green }}>ACashController</div>
+          <div style={{ fontSize: 10, color: WF.muted }}>usuario</div>
+        </div>
+      </div>
+      <div style={{ textAlign: 'right' }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: WF.text }}>Extrato Mensal</div>
+        <div style={{ fontSize: 10, color: WF.muted }}>Junho 2026</div>
+      </div>
+    </div>
+
+    {/* Resumo */}
+    <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.5, color: WF.muted, marginBottom: 7, fontWeight: 600 }}>Resumo do Período</div>
+    <div style={{ border: WF.border, borderRadius: WF.r, overflow: 'hidden', marginBottom: 16 }}>
+      {[['Saldo Atual', 'R$ 15.420,00', WF.blue], ['Total de Entradas', 'R$ 8.300,00', WF.green], ['Total de Saídas', 'R$ 3.210,00', WF.red]].map(([lbl, val, col], i) => (
+        <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '7px 12px', borderBottom: i < 2 ? `1px solid ${WF.faint}` : 'none', fontSize: 11 }}>
+          <span style={{ color: WF.muted }}>{lbl}</span>
+          <span style={{ color: col, fontWeight: 700 }}>{val}</span>
+        </div>
+      ))}
+    </div>
+
+    {/* Tabela de transações */}
+    <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: 0.5, color: WF.muted, marginBottom: 7, fontWeight: 600 }}>Transações</div>
+    <div style={{ border: WF.border, borderRadius: WF.r, overflow: 'hidden', fontFamily: WF.font, flex: 1 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '70px 1fr 90px 60px 80px', background: '#efefec', borderBottom: WF.border, fontSize: 9, color: WF.muted, padding: '6px 12px', gap: 6 }}>
+        <span>DATA</span><span>DESCRIÇÃO</span><span>CATEGORIA</span><span>TIPO</span><span style={{ textAlign: 'right' }}>VALOR</span>
+      </div>
+      {[
+        ['05/06', 'Supermercado Pão de Açúcar', 'Alimentação', 'Saída', '−R$ 380,00', WF.red],
+        ['03/06', 'Salário Empresa XYZ', 'Renda', 'Entrada', '+R$ 5.000,00', WF.green],
+        ['01/06', 'Netflix', 'Assinaturas', 'Saída', '−R$ 44,90', WF.red],
+        ['28/05', 'Freelance — Design', 'Freelance', 'Entrada', '+R$ 1.200,00', WF.green],
+      ].map(([data, desc, cat, tipo, val, col], i) => (
+        <div key={i} style={{ display: 'grid', gridTemplateColumns: '70px 1fr 90px 60px 80px', padding: '6px 12px', gap: 6, fontSize: 10, alignItems: 'center', background: i % 2 === 0 ? '#fff' : '#fafaf8', borderBottom: i < 3 ? `1px solid ${WF.faint}` : 'none' }}>
+          <span style={{ color: WF.muted }}>{data}</span>
+          <span style={{ color: WF.text }}>{desc}</span>
+          <span style={{ color: WF.muted, fontSize: 9 }}>{cat}</span>
+          <Badge label={tipo} color={col} />
+          <span style={{ color: col, fontWeight: 700, textAlign: 'right' }}>{val}</span>
+        </div>
+      ))}
+    </div>
+
+    {/* Rodapé */}
+    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 14, paddingTop: 10, borderTop: `1px solid ${WF.faint}`, fontSize: 9, color: '#bbb' }}>
+      <span>Gerado em 06/06/2026 14:32</span>
+      <span>Gerado por ACashController</span>
+    </div>
+  </div>
+);
+
+// ─── LOGIN ───────────────────────────────────────────────────
+const Login = () => (
+  <div style={{ background: WF.surface, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 28, height: '100%' }}>
+    <div style={{ width: '100%', border: WF.border, borderRadius: WF.r, background: WF.bg, padding: '28px 24px', fontFamily: WF.font, display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <div style={{ textAlign: 'center', marginBottom: 4 }}>
+        <div style={{ fontSize: 17, fontWeight: 700, color: WF.green }}>● ACashController</div>
+        <div style={{ fontSize: 12, color: WF.muted, marginTop: 2 }}>Faça login para continuar</div>
+      </div>
+      <WfField label="Usuário" placeholder="seu_usuario" />
+      <WfField label="Senha" placeholder="••••••••" />
+      <WfBtn label="Entrar" variant="primary" />
+      <div style={{ textAlign: 'center', fontSize: 12, color: WF.muted }}>
+        Não tem conta? <span style={{ color: WF.blue }}>Cadastre-se</span>
+      </div>
+    </div>
+  </div>
+);
+
+// ─── CADASTRO ────────────────────────────────────────────────
+const Cadastro = () => (
+  <div style={{ background: WF.surface, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 28, height: '100%' }}>
+    <div style={{ width: '100%', border: WF.border, borderRadius: WF.r, background: WF.bg, padding: '28px 24px', fontFamily: WF.font, display: 'flex', flexDirection: 'column', gap: 13 }}>
+      <div style={{ textAlign: 'center', marginBottom: 2 }}>
+        <div style={{ fontSize: 17, fontWeight: 700, color: WF.green }}>● ACashController</div>
+        <div style={{ fontSize: 12, color: WF.muted, marginTop: 2 }}>Criar nova conta</div>
+      </div>
+      <WfField label="Usuário" placeholder="seu_usuario" />
+      <WfField label="E-mail" placeholder="voce@email.com" />
+      <WfField label="Senha" placeholder="••••••••" />
+      <WfField label="Confirmar Senha" placeholder="••••••••" />
+      <WfBtn label="Criar Conta" variant="primary" />
+      <div style={{ textAlign: 'center', fontSize: 12, color: WF.muted }}>
+        Já tem conta? <span style={{ color: WF.blue }}>Entrar</span>
+      </div>
+    </div>
+  </div>
+);
+
+// ─── APP ─────────────────────────────────────────────────────
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "dashboard": "C · Split Panel"
+}/*EDITMODE-END*/;
+
+function App() {
+  const { DesignCanvas, DCSection, DCArtboard } = window;
+  const { useTweaks, TweaksPanel, TweakSection, TweakRadio } = window;
+  const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+
+  return (
+    <div>
+      <DesignCanvas>
+
+        <DCSection id="dash" title="Dashboard" subtitle="3 variações de layout — escolha uma direção antes de codar">
+          <DCArtboard id="da" label="A · Clássico" width={900} height={510}>
+            <DashboardA />
+          </DCArtboard>
+          <DCArtboard id="db" label="B · Hero Balance" width={900} height={650}>
+            <DashboardB />
+          </DCArtboard>
+          <DCArtboard id="dc" label="C · Split Panel" width={900} height={520}>
+            <DashboardC />
+          </DCArtboard>
+        </DCSection>
+
+        <DCSection id="screens" title="Telas Secundárias" subtitle="Estrutura das outras telas — layout único">
+          <DCArtboard id="tr" label="Transações" width={880} height={500}>
+            <Transacoes />
+          </DCArtboard>
+          <DCArtboard id="tf" label="Formulário de Transação" width={580} height={440}>
+            <TransacaoForm />
+          </DCArtboard>
+          <DCArtboard id="mt" label="Metas" width={820} height={400}>
+            <Metas />
+          </DCArtboard>
+        </DCSection>
+
+        <DCSection id="cats" title="Categorias" subtitle="Listagem e formulário de categorias">
+          <DCArtboard id="cl" label="Categorias" width={820} height={480}>
+            <Categorias />
+          </DCArtboard>
+          <DCArtboard id="cf" label="Formulário de Categoria" width={540} height={480}>
+            <CategoriaForm />
+          </DCArtboard>
+        </DCSection>
+
+        <DCSection id="extra" title="Telas Adicionais" subtitle="Confirmação de exclusão · Formulário de meta · Extrato PDF">
+          <DCArtboard id="tcd" label="Confirmar Exclusão de Transação" width={560} height={420}>
+            <TransacaoConfirmDelete />
+          </DCArtboard>
+          <DCArtboard id="mf" label="Formulário de Meta" width={560} height={500}>
+            <MetaForm />
+          </DCArtboard>
+          <DCArtboard id="ep" label="Extrato PDF (servidor)" width={620} height={540}>
+            <ExtratoPdf />
+          </DCArtboard>
+        </DCSection>
+
+        <DCSection id="auth" title="Autenticação" subtitle="Telas de login e cadastro">
+          <DCArtboard id="lg" label="Login" width={360} height={360}>
+            <Login />
+          </DCArtboard>
+          <DCArtboard id="cd" label="Cadastro" width={360} height={420}>
+            <Cadastro />
+          </DCArtboard>
+        </DCSection>
+
+      </DesignCanvas>
+
+      <TweaksPanel>
+        <TweakSection label="Dashboard favorito" />
+        <TweakRadio
+          label="Opção preferida"
+          value={t.dashboard}
+          options={['A · Clássico', 'B · Hero Balance', 'C · Split Panel']}
+          onChange={v => setTweak('dashboard', v)}
+        />
+      </TweaksPanel>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

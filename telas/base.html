@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<!-- ═══════════════════════════════════════════════════════════
+     base.html — Template base do ACashController
+     Django: {% load static %}
+     Todas as outras telas estendem este arquivo.
+     ═══════════════════════════════════════════════════════════ -->
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Django: <title>{% block title %}ACashController{% endblock %}</title> -->
+  <title>ACashController</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <!-- Django: <link rel="stylesheet" href="{% static 'css/styles.css' %}"> -->
+  <link rel="stylesheet" href="styles.css">
+  <!-- Django: {% block extra_head %}{% endblock %} -->
+</head>
+<body>
+
+  <!-- ── NAVBAR ─────────────────────────────────────────────── -->
+  <nav class="navbar">
+    <!-- Django: <a href="{% url 'dashboard' %}" class="navbar-brand"> -->
+    <a href="dashboard.html" class="navbar-brand">
+      <span class="logo-mark">AC</span>
+      ACashController
+    </a>
+
+    <ul class="navbar-nav">
+      <!-- Django: {% url 'dashboard' %} com class="active" se request.resolver_match.url_name == 'dashboard' -->
+      <li><a href="dashboard.html" class="active">Dashboard</a></li>
+      <li><a href="transacoes.html">Transações</a></li>
+      <li><a href="#">Categorias</a></li>
+      <li><a href="metas.html">Metas</a></li>
+    </ul>
+
+    <!-- Django: {% if user.is_authenticated %} -->
+    <div class="navbar-end">
+      <div class="avatar">U</div><!-- Django: {{ user.username|first|upper }} -->
+      <span class="navbar-username">usuario</span><!-- Django: {{ user.username }} -->
+      <!-- Django: <a href="{% url 'logout' %}" class="navbar-sair">Sair</a> -->
+      <a href="login.html" class="navbar-sair">Sair</a>
+    </div>
+    <!-- Django: {% endif %} -->
+  </nav>
+
+  <!-- ── FLASH MESSAGES ─────────────────────────────────────── -->
+  <!-- Django: {% if messages %} -->
+  <div class="alert-container">
+    <!-- Django: {% for message in messages %} -->
+    <!-- Django: <div class="alert alert-{{ message.tags }}">{{ message }}</div> -->
+
+    <!-- Exemplo de mensagem de sucesso (preview estático) -->
+    <div class="alert alert-success">
+      ✓ Transação adicionada com sucesso!
+    </div>
+
+    <!-- Django: {% endfor %} -->
+  </div>
+  <!-- Django: {% endif %} -->
+
+  <!-- ── CONTEÚDO PRINCIPAL ─────────────────────────────────── -->
+  <!-- Django: {% block content %}{% endblock %} -->
+  <main class="page">
+    <div style="
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; min-height: 300px; gap: 12px;
+      color: var(--text-muted); text-align: center;
+    ">
+      <div style="
+        width: 56px; height: 56px; border-radius: 14px;
+        background: var(--green-50); display: flex; align-items: center;
+        justify-content: center; font-size: 1.6rem;
+      ">📊</div>
+      <p style="font-weight: 600; font-size: .95rem; color: var(--text);">
+        Área de Conteúdo
+      </p>
+      <p style="font-size: .84rem; max-width: 340px; line-height: 1.6;">
+        Este bloco é substituído por <code>{% block content %}</code> nas
+        telas filhas. Navegue usando o menu acima.
+      </p>
+      <div style="display: flex; gap: 10px; margin-top: 8px;">
+        <a href="dashboard.html" class="btn btn-primary btn-inline btn-sm">Dashboard</a>
+        <a href="transacoes.html" class="btn btn-outline btn-inline btn-sm">Transações</a>
+        <a href="metas.html" class="btn btn-outline btn-inline btn-sm">Metas</a>
+      </div>
+    </div>
+  </main>
+  <!-- Django: {% block extra_js %}{% endblock %} -->
+
+</body>
+</html>

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<!-- ═══════════════════════════════════════════════════════════
+     transacao_form.html — Criar / Editar transação
+     Django: {% extends "base.html" %}
+     Django: {% block title %}{% if form.instance.pk %}Editar{% else %}Nova{% endif %} Transação — ACashController{% endblock %}
+     ═══════════════════════════════════════════════════════════ -->
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nova Transação — ACashController</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <!-- Django: <link rel="stylesheet" href="{% static 'css/styles.css' %}"> -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- ── NAVBAR ─────────────────────────────────────────────── -->
+  <nav class="navbar">
+    <a href="dashboard.html" class="navbar-brand">
+      <span class="logo-mark">AC</span>
+      ACashController
+    </a>
+    <ul class="navbar-nav">
+      <li><a href="dashboard.html">Dashboard</a></li>
+      <li><a href="transacoes.html" class="active">Transações</a></li>
+      <li><a href="#">Categorias</a></li>
+      <li><a href="metas.html">Metas</a></li>
+    </ul>
+    <div class="navbar-end">
+      <div class="avatar">U</div>
+      <span class="navbar-username">usuario</span><!-- Django: {{ user.username }} -->
+      <a href="login.html" class="navbar-sair">Sair</a>
+    </div>
+  </nav>
+
+  <!-- Django: {% block content %} -->
+  <main class="page">
+    <div style="max-width: 580px;">
+
+      <!-- Cabeçalho -->
+      <div class="page-header">
+        <!-- Django: <h1 class="page-title">{% if form.instance.pk %}Editar Transação{% else %}Nova Transação{% endif %}</h1> -->
+        <h1 class="page-title">Nova Transação</h1>
+        <a href="transacoes.html" class="btn btn-outline btn-inline btn-sm">
+          ← Voltar
+        </a>
+      </div>
+
+      <div class="card">
+
+        <!-- ── Erro: Saldo Insuficiente ────────────────────── -->
+        <!-- Django: {% if saldo_insuficiente %} -->
+        <div class="alert-inline" id="erroSaldo">
+          <span>⚠</span>
+          <span>
+            Saldo insuficiente para registrar esta saída.
+            Saldo atual: <strong>R$ 15.420,00</strong>.
+            <!-- Django: Saldo atual: <strong>R$ {{ saldo_atual|floatformat:2 }}</strong>. -->
+          </span>
+        </div>
+        <!-- Django: {% endif %} -->
+
+        <!-- Django: <form method="post" action="{% url 'transacao_salvar' %}"> -->
+        <form method="post" action="#">
+          <!-- Django: {% csrf_token %} -->
+          <!-- Django: {% if form.instance.pk %}<input type="hidden" name="id" value="{{ form.instance.pk }}">{% endif %} -->
+
+          <!-- Descrição -->
+          <div class="form-group">
+            <label class="form-label" for="id_descricao">Descrição</label>
+            <!-- Django: {{ form.descricao }} -->
+            <input
+              class="form-control"
+              type="text"
+              id="id_descricao"
+              name="descricao"
+              placeholder="Ex.: Supermercado, Salário, Academia..."
+              maxlength="200"
+            >
+            <!-- Django: {{ form.descricao.errors }} -->
+          </div>
+
+          <!-- Valor e Data na mesma linha -->
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="id_valor">Valor (R$)</label>
+              <!-- Django: {{ form.valor }} -->
+              <input
+                class="form-control"
+                type="number"
+                id="id_valor"
+                name="valor"
+                placeholder="0,00"
+                min="0.01"
+                step="0.01"
+              >
+              <!-- Django: {{ form.valor.errors }} -->
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="id_data">Data</label>
+              <!-- Django: {{ form.data }} -->
+              <input
+                class="form-control"
+                type="date"
+                id="id_data"
+                name="data"
+                value="2026-06-06"
+              ><!-- Django: value="{{ data_hoje }}" -->
+              <!-- Django: {{ form.data.errors }} -->
+            </div>
+          </div>
+
+          <!-- Categoria -->
+          <div class="form-group">
+            <label class="form-label" for="id_categoria">Categoria</label>
+            <!-- Django: {{ form.categoria }} -->
+            <select class="form-control" id="id_categoria" name="categoria">
+              <option value="" disabled selected>Selecione uma categoria...</option>
+              <!-- Django: {% for cat in categorias %} -->
+              <!-- Django: <option value="{{ cat.pk }}" {% if form.instance.categoria_id == cat.pk %}selected{% endif %}>{{ cat.nome }}</option> -->
+
+              <!-- Categorias de SAÍDA -->
+              <optgroup label="Saídas">
+                <option value="1">Alimentação</option>
+                <option value="2">Moradia</option>
+                <option value="3">Transporte</option>
+                <option value="4">Lazer</option>
+                <option value="5">Saúde</option>
+                <option value="6">Educação</option>
+                <option value="7">Vestuário</option>
+                <option value="8">Outros</option>
+              </optgroup>
+              <!-- Categorias de ENTRADA -->
+              <optgroup label="Entradas">
+                <option value="9">Salário</option>
+                <option value="10">Freelance</option>
+                <option value="11">Investimentos</option>
+                <option value="12">Outros (Entrada)</option>
+              </optgroup>
+              <!-- Django: {% endfor %} -->
+            </select>
+            <!-- Django: {{ form.categoria.errors }} -->
+            <span class="form-hint info">
+              O tipo (Entrada / Saída) é definido automaticamente pela categoria escolhida.
+            </span>
+          </div>
+
+          <!-- Ações -->
+          <div class="form-actions" style="margin-top: 8px;">
+            <button type="submit" class="btn btn-primary">
+              <!-- Django: {% if form.instance.pk %}Salvar Alterações{% else %}Adicionar Transação{% endif %} -->
+              Adicionar Transação
+            </button>
+            <a href="transacoes.html" class="btn btn-outline">Cancelar</a>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </main>
+  <!-- Django: {% endblock %} -->
+
+</body>
+</html>
