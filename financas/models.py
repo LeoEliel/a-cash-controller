@@ -50,7 +50,8 @@ class Transacao(models.Model):
         return self.categoria.get_tipo_display()
 
     def clean(self):
-        if self.valor is None or self.valor <= 0:
+        super().clean()
+        if self.valor is not None and self.valor <= 0:
             raise ValidationError({'valor': 'O valor deve ser maior que zero.'})
 
 
