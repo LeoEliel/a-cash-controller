@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block title %}Excluir Categoria — ACashController{% endblock %}
+
+{% block content %}
+<div style="max-width:480px;">
+  <div class="page-header">
+    <h1 class="page-title">Excluir Categoria</h1>
+    <a href="{% url 'categoria_list' %}" class="btn btn-outline btn-inline btn-sm">← Voltar</a>
+  </div>
+
+  <div class="card">
+    <p style="font-size:.84rem;color:var(--text-muted);margin-bottom:18px;">
+      Você está prestes a excluir a seguinte categoria:
+    </p>
+
+    <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:22px;">
+      <span style="display:inline-block;width:20px;height:20px;border-radius:4px;background:{{ object.cor }};border:1px solid rgba(0,0,0,.10);flex-shrink:0;"></span>
+      <span style="font-weight:600;font-size:.95rem;flex:1;">{{ object.nome }}</span>
+      {% if object.tipo == 'E' %}
+      <span class="badge badge-entrada">Entrada</span>
+      {% else %}
+      <span class="badge badge-saida">Saída</span>
+      {% endif %}
+    </div>
+
+    <p style="font-size:.875rem;color:var(--text);margin-bottom:22px;line-height:1.6;">
+      Tem certeza que deseja excluir esta categoria?
+      <strong style="color:var(--red);">Esta ação não pode ser desfeita.</strong>
+      Transações vinculadas a ela <strong>não serão excluídas</strong>, mas perderão a referência de categoria.
+    </p>
+
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-actions">
+        <button type="submit" class="btn btn-danger">Excluir</button>
+        <a href="{% url 'categoria_list' %}" class="btn btn-outline">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

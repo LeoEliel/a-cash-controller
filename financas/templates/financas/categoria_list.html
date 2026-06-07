@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block title %}Categorias — ACashController{% endblock %}
+
+{% block extra_head %}
+<style>
+.color-swatch{display:inline-block;width:18px;height:18px;border-radius:4px;border:1px solid rgba(0,0,0,.10);flex-shrink:0;vertical-align:middle;}
+.swatch-cell{display:flex;align-items:center;gap:8px;}
+.swatch-hex{font-size:.78rem;font-family:'Courier New',monospace;color:var(--text-muted);letter-spacing:.3px;}
+.td-icon{font-size:.82rem;color:var(--text-muted);font-style:italic;}
+.td-icon.empty{color:var(--text-light);}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">Categorias</h1>
+  <a href="{% url 'categoria_nova' %}" class="btn btn-primary btn-inline">+ Nova Categoria</a>
+</div>
+
+<div class="table-container">
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Tipo</th>
+          <th>Cor</th>
+          <th>Ícone</th>
+          <th style="text-align:center;">Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for categoria in categorias %}
+        <tr>
+          <td style="font-weight:500;">{{ categoria.nome }}</td>
+          <td>
+            {% if categoria.tipo == 'E' %}
+            <span class="badge badge-entrada">Entrada</span>
+            {% else %}
+            <span class="badge badge-saida">Saída</span>
+            {% endif %}
+          </td>
+          <td>
+            <div class="swatch-cell">
+              <span class="color-swatch" style="background:{{ categoria.cor }};"></span>
+              <span class="swatch-hex">{{ categoria.cor }}</span>
+            </div>
+          </td>
+          <td>
+            <span class="td-icon {% if not categoria.icone %}empty{% endif %}">{{ categoria.icone|default:"—" }}</span>
+          </td>
+          <td style="text-align:center;">
+            <div class="row-actions" style="justify-content:center;">
+              <a href="{% url 'categoria_editar' categoria.pk %}" class="btn-action" title="Editar">✎</a>
+              <a href="{% url 'categoria_excluir' categoria.pk %}" class="btn-action delete" title="Excluir">✕</a>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" style="text-align:center;padding:32px;color:var(--text-muted);">
+            Nenhuma categoria cadastrada.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<p style="margin-top:14px;font-size:.8rem;color:var(--text-light);line-height:1.6;">
+  O tipo de uma transação (Entrada / Saída) é determinado pela categoria escolhida no momento do lançamento.
+</p>
+{% endblock %}

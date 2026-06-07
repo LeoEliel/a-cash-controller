@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}Excluir Transação — ACashController{% endblock %}
+
+{% block content %}
+<div style="max-width:480px;">
+  <div class="page-header">
+    <h1 class="page-title">Excluir Transação</h1>
+    <a href="{% url 'transacoes' %}" class="btn btn-outline btn-inline btn-sm">← Voltar</a>
+  </div>
+
+  <div class="card">
+    <p style="font-size:.84rem;color:var(--text-muted);margin-bottom:18px;">
+      Você está prestes a excluir a seguinte transação:
+    </p>
+
+    <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 16px;display:flex;flex-direction:column;gap:8px;margin-bottom:22px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+        <span style="font-weight:600;font-size:.95rem;">{{ object.descricao }}</span>
+        {% if object.categoria.tipo == 'E' %}
+        <span class="badge badge-entrada">Entrada</span>
+        {% else %}
+        <span class="badge badge-saida">Saída</span>
+        {% endif %}
+      </div>
+      <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+        <span class="td-muted">{{ object.categoria.nome }}</span>
+        <span class="td-muted">{{ object.data|date:"d/m/Y" }}</span>
+      </div>
+      {% if object.categoria.tipo == 'E' %}
+      <span class="td-val-entrada" style="font-size:1.05rem;">+R$ {{ object.valor|floatformat:2 }}</span>
+      {% else %}
+      <span class="td-val-saida" style="font-size:1.05rem;">−R$ {{ object.valor|floatformat:2 }}</span>
+      {% endif %}
+    </div>
+
+    <p style="font-size:.875rem;color:var(--text);margin-bottom:22px;line-height:1.6;">
+      Tem certeza que deseja excluir esta transação?
+      <strong style="color:var(--red);">Esta ação não pode ser desfeita.</strong>
+    </p>
+
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-actions">
+        <button type="submit" class="btn btn-danger">Excluir</button>
+        <a href="{% url 'transacoes' %}" class="btn btn-outline">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

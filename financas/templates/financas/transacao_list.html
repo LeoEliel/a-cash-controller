@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block title %}Transações — ACashController{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">Transações</h1>
+  <a href="{% url 'transacao_nova' %}" class="btn btn-primary btn-inline">+ Nova Transação</a>
+</div>
+
+<form method="get" action="{% url 'transacoes' %}">
+  <div class="filter-bar">
+    <label for="mes" style="font-size:.8rem;font-weight:600;color:var(--text-muted);white-space:nowrap;">Filtrar por:</label>
+
+    <select name="mes" id="mes">
+      {% for num, nome in meses %}
+      <option value="{{ num }}" {% if num == mes_atual %}selected{% endif %}>{{ nome }}</option>
+      {% endfor %}
+    </select>
+
+    <select name="ano" id="ano">
+      {% for a in anos %}
+      <option value="{{ a }}" {% if a == ano_atual %}selected{% endif %}>{{ a }}</option>
+      {% endfor %}
+    </select>
+
+    <input type="text" name="q" placeholder="Buscar por descrição..." value="{{ request.GET.q }}">
+
+    <button type="submit" class="btn btn-outline btn-sm btn-inline">Filtrar</button>
+  </div>
+</form>
+
+<div class="table-container">
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Descrição</th>
+          <th>Categoria</th>
+          <th>Tipo</th>
+          <th style="text-align:right;">Valor</th>
+          <th style="text-align:center;">Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in transacoes %}
+        <tr>
+          <td class="td-muted">{{ t.data|date:"d/m/Y" }}</td>
+          <td>{{ t.descricao }}</td>
+          <td class="td-muted">{{ t.categoria.nome }}</td>
+          <td>
+            {% if t.categoria.tipo == 'E' %}
+            <span class="badge badge-entrada">Entrada</span>
+            {% else %}
+            <span class="badge badge-saida">Saída</span>
+            {% endif %}
+          </td>
+          <td style="text-align:right;">
+            {% if t.categoria.tipo == 'E' %}
+            <span class="td-val-entrada">+R$ {{ t.valor|floatformat:2 }}</span>
+            {% else %}
+            <span class="td-val-saida">−R$ {{ t.valor|floatformat:2 }}</span>
+            {% endif %}
+          </td>
+          <td style="text-align:center;">
+            <div class="row-actions" style="justify-content:center;">
+              <a href="{% url 'transacao_editar' t.pk %}" class="btn-action" title="Editar">✎</a>
+              <a href="{% url 'transacao_excluir' t.pk %}" class="btn-action delete" title="Excluir">✕</a>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" style="text-align:center;padding:32px;color:var(--text-muted);">
+            Nenhuma transação encontrada.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if is_paginated %}
+  <div class="pagination">
+    {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}{{ filter_qs }}" class="page-btn">‹</a>
+    {% endif %}
+    {% for num in page_obj.paginator.page_range %}
+    <a href="?page={{ num }}{{ filter_qs }}" class="page-btn {% if page_obj.number == num %}active{% endif %}">{{ num }}</a>
+    {% endfor %}
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}{{ filter_qs }}" class="page-btn">›</a>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

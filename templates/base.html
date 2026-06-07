@@ -18,12 +18,14 @@
       ACashController
     </a>
 
+    {% with url_name=request.resolver_match.url_name|default:'' %}
     <ul class="navbar-nav">
-      <li><a href="{% url 'dashboard' %}" {% if request.resolver_match.url_name == 'dashboard' %}class="active"{% endif %}>Dashboard</a></li>
-      <li><a href="#" {% if request.resolver_match.url_name == 'transacao_list' %}class="active"{% endif %}>Transações</a></li>
-      <li><a href="#" {% if request.resolver_match.url_name == 'categoria_list' %}class="active"{% endif %}>Categorias</a></li>
-      <li><a href="#" {% if request.resolver_match.url_name == 'meta_list' %}class="active"{% endif %}>Metas</a></li>
+      <li><a href="{% url 'dashboard' %}" {% if url_name == 'dashboard' %}class="active"{% endif %}>Dashboard</a></li>
+      <li><a href="{% url 'transacoes' %}" {% if 'transac' in url_name %}class="active"{% endif %}>Transações</a></li>
+      <li><a href="{% url 'categoria_list' %}" {% if 'categoria' in url_name %}class="active"{% endif %}>Categorias</a></li>
+      <li><a href="{% url 'metas' %}" {% if 'meta' in url_name %}class="active"{% endif %}>Metas</a></li>
     </ul>
+    {% endwith %}
 
     {% if user.is_authenticated %}
     <div class="navbar-end">

@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block title %}Excluir Meta — ACashController{% endblock %}
+
+{% block content %}
+<div style="max-width:480px;">
+  <div class="page-header">
+    <h1 class="page-title">Excluir Meta</h1>
+    <a href="{% url 'metas' %}" class="btn btn-outline btn-inline btn-sm">← Voltar</a>
+  </div>
+
+  <div class="card">
+    <p style="font-size:.84rem;color:var(--text-muted);margin-bottom:18px;">
+      Você está prestes a excluir a seguinte meta:
+    </p>
+
+    <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 16px;display:flex;flex-direction:column;gap:8px;margin-bottom:22px;">
+      <span style="font-weight:600;font-size:.95rem;">{{ object.nome }}</span>
+      <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+        <span class="td-muted">Alvo: R$ {{ object.valor_alvo|floatformat:2 }}</span>
+        <span class="td-val-entrada">Atual: R$ {{ object.valor_atual|floatformat:2 }}</span>
+        {% if object.prazo %}
+        <span class="td-muted">Prazo: {{ object.prazo|date:"d/m/Y" }}</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <p style="font-size:.875rem;color:var(--text);margin-bottom:22px;line-height:1.6;">
+      Tem certeza que deseja excluir esta meta?
+      <strong style="color:var(--red);">Esta ação não pode ser desfeita.</strong>
+    </p>
+
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-actions">
+        <button type="submit" class="btn btn-danger">Excluir</button>
+        <a href="{% url 'metas' %}" class="btn btn-outline">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

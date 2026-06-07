@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block title %}Metas de Economia — ACashController{% endblock %}
+
+{% block extra_head %}
+<style>
+.progress-bar-track{background:var(--surface-2);border:1px solid var(--border);border-radius:100px;height:8px;overflow:hidden;}
+.progress-bar-fill{height:100%;border-radius:100px;background:var(--green);transition:width .3s;}
+.progress-bar-fill.danger{background:var(--red);}
+.progress-bar-fill.warning{background:#f59e0b;}
+.meta-progresso{font-size:.78rem;color:var(--text-muted);white-space:nowrap;}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">Metas de Economia</h1>
+  <a href="{% url 'meta_nova' %}" class="btn btn-primary btn-inline">+ Nova Meta</a>
+</div>
+
+<div class="table-container">
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Progresso</th>
+          <th style="text-align:right;">Atual</th>
+          <th style="text-align:right;">Alvo</th>
+          <th>Prazo</th>
+          <th>Status</th>
+          <th style="text-align:center;">Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for meta in metas %}
+        <tr>
+          <td style="font-weight:500;">{{ meta.nome }}</td>
+          <td style="min-width:140px;">
+            <div style="display:flex;flex-direction:column;gap:4px;">
+              <div class="progress-bar-track">
+                <div class="progress-bar-fill {% if meta.progresso >= 100 %}{% elif meta.progresso < 30 %}danger{% elif meta.progresso < 70 %}warning{% endif %}"
+                     style="width:{{ meta.progresso }}%;"></div>
+              </div>
+              <span class="meta-progresso">{{ meta.progresso }}%</span>
+            </div>
+          </td>
+          <td style="text-align:right;" class="td-val-entrada">R$ {{ meta.valor_atual|floatformat:2 }}</td>
+          <td style="text-align:right;" class="td-muted">R$ {{ meta.valor_alvo|floatformat:2 }}</td>
+          <td class="td-muted">
+            {% if meta.prazo %}{{ meta.prazo|date:"d/m/Y" }}{% else %}—{% endif %}
+          </td>
+          <td>
+            {% if meta.concluida %}
+            <span class="badge badge-entrada">Concluída</span>
+            {% else %}
+            <span class="badge" style="background:var(--surface-2);color:var(--text-muted);border:1px solid var(--border);">Em andamento</span>
+            {% endif %}
+          </td>
+          <td style="text-align:center;">
+            <div class="row-actions" style="justify-content:center;">
+              <a href="{% url 'meta_editar' meta.pk %}" class="btn-action" title="Editar">✎</a>
+              <a href="{% url 'meta_excluir' meta.pk %}" class="btn-action delete" title="Excluir">✕</a>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" style="text-align:center;padding:32px;color:var(--text-muted);">
+            Nenhuma meta cadastrada.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
