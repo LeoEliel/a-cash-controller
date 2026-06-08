@@ -1,20 +1,37 @@
+import csv
+import io
 import json
 from collections import defaultdict
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Sum
 from django.db.models.functions import TruncMonth
+from django.http import HttpResponse
 from django.utils import timezone
+from django.views import View
 from django.views.generic import TemplateView
 
 from financas.models import Transacao
 from financas.services import saldo_usuario
+from utils.my_mixins import GeraPDFMixin
+
+from .services import MESES_NOME, get_extrato
 
 MESES_ABREV = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
                 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
-MESES_NOME  = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-               'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
 
+
+def _parse_mes_ano(request):
+    today = timezone.localdate()
+    try:
+        mes = int(request.GET.get('mes', today.month))
+        ano = int(request.GET.get('ano', today.year))
+    except (ValueError, TypeError):
+        mes, ano = today.month, today.year
+    return mes, ano
+
+
+# ── Dashboard ──────────────────────────────────────────────────────────────
 
 class DashboardView(LoginRequiredMixin, TemplateView):
     template_name = 'dashboard/dashboard.html'
@@ -25,13 +42,13 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         today = timezone.localdate()
         mes, ano = today.month, today.year
 
-        # ── KPIs do mês corrente ──────────────────────────────────────
+        # KPIs do mês corrente
         qs_mes = Transacao.objects.filter(usuario=user, data__year=ano, data__month=mes)
         total_entradas = qs_mes.filter(categoria__tipo='E').aggregate(s=Sum('valor'))['s'] or 0
         total_saidas   = qs_mes.filter(categoria__tipo='S').aggregate(s=Sum('valor'))['s'] or 0
         saldo = saldo_usuario(user)
 
-        # ── Patrimônio acumulado (até 12 meses exibidos) ──────────────
+        # Patrimônio acumulado (até 12 meses exibidos)
         monthly_rows = (
             Transacao.objects
             .filter(usuario=user)
@@ -40,7 +57,6 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             .annotate(total=Sum('valor'))
             .order_by('mes')
         )
-
         monthly_map = defaultdict(lambda: {'E': 0.0, 'S': 0.0})
         for row in monthly_rows:
             monthly_map[row['mes']][row['categoria__tipo']] += float(row['total'])
@@ -56,16 +72,14 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         patrimonio_labels = [MESES_ABREV[m.month - 1] for m in display_months]
         patrimonio_data   = [cumulative[m] for m in display_months]
 
-        # ── Gastos por categoria do mês (rosca + top 5) ───────────────
+        # Gastos por categoria do mês (rosca + top 5)
         cats = list(
             qs_mes.filter(categoria__tipo='S')
             .values('categoria__nome')
             .annotate(total=Sum('valor'))
             .order_by('-total')
         )
-
         total_saidas_cats = sum(float(c['total']) for c in cats)
-
         cat_labels = [c['categoria__nome'] for c in cats]
         if total_saidas_cats > 0:
             cat_data = [round(float(c['total']) / total_saidas_cats * 100, 1) for c in cats]
@@ -93,3 +107,56 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             'top_categorias': top_categorias,
         })
         return ctx
+
+
+# ── Exportações ────────────────────────────────────────────────────────────
+
+class ExportarCSVView(LoginRequiredMixin, View):
+    def get(self, request):
+        mes, ano = _parse_mes_ano(request)
+        extrato = get_extrato(request.user, mes, ano)
+
+        buf = io.StringIO()
+        writer = csv.writer(buf)
+        writer.writerow(['Extrato Mensal', f"{extrato['mes_nome']} {ano}"])
+        writer.writerow(['Saldo Atual', f"R$ {extrato['saldo']:.2f}"])
+        writer.writerow(['Total de Entradas', f"R$ {extrato['total_entradas']:.2f}"])
+        writer.writerow(['Total de Saídas', f"R$ {extrato['total_saidas']:.2f}"])
+        writer.writerow([])
+        writer.writerow(['Data', 'Descrição', 'Categoria', 'Tipo', 'Valor'])
+
+        for t in extrato['transacoes']:
+            sinal = '+' if t.categoria.tipo == 'E' else '-'
+            writer.writerow([
+                t.data.strftime('%d/%m/%Y'),
+                t.descricao,
+                t.categoria.nome,
+                t.tipo_display,
+                f"{sinal}R$ {t.valor:.2f}",
+            ])
+
+        # utf-8-sig encodes o BOM (\xef\xbb\xbf) uma única vez no início
+        response = HttpResponse(
+            buf.getvalue().encode('utf-8-sig'),
+            content_type='text/csv',
+        )
+        response['Content-Disposition'] = (
+            f'attachment; filename="extrato_{ano}_{mes:02d}.csv"'
+        )
+        return response
+
+
+class ExportarPDFView(LoginRequiredMixin, GeraPDFMixin, View):
+    def get(self, request):
+        mes, ano = _parse_mes_ano(request)
+        extrato = get_extrato(request.user, mes, ano)
+        context = {
+            **extrato,
+            'user': request.user,
+            'gerado_em': timezone.now(),
+        }
+        response = self.render_to_pdf('dashboard/extrato_pdf.html', context)
+        response['Content-Disposition'] = (
+            f'attachment; filename="extrato_{ano}_{mes:02d}.pdf"'
+        )
+        return response

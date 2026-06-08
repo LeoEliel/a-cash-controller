@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Extrato {{ mes_nome }} {{ ano }} — {{ user.username }}</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: Helvetica, Arial, sans-serif;
+      font-size: 11pt;
+      color: #1e2028;
+      background: #ffffff;
+      padding: 28pt 32pt;
+    }
+    .header-table {
+      width: 100%;
+      border-bottom: 2pt solid #1D9E75;
+      padding-bottom: 12pt;
+      margin-bottom: 18pt;
+    }
+    .logo-cell { width: 44pt; vertical-align: middle; }
+    .logo-mark {
+      background-color: #1D9E75;
+      color: #ffffff;
+      font-weight: bold;
+      font-size: 13pt;
+      text-align: center;
+      padding: 8pt 6pt;
+      border-radius: 4pt;
+      width: 36pt;
+    }
+    .brand-cell { vertical-align: middle; padding-left: 10pt; }
+    .brand-name { font-size: 15pt; font-weight: bold; color: #1D9E75; }
+    .brand-sub  { font-size: 9pt; color: #6b7280; margin-top: 2pt; }
+    .report-info-cell { text-align: right; vertical-align: middle; }
+    .report-title  { font-size: 13pt; font-weight: bold; color: #1e2028; }
+    .report-period { font-size: 10pt; color: #6b7280; margin-top: 3pt; }
+    .report-user   { font-size: 9pt; color: #9ca3af; margin-top: 2pt; }
+    .section-title {
+      font-size: 10pt;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 0.5pt;
+      color: #6b7280;
+      margin-bottom: 8pt;
+      margin-top: 18pt;
+    }
+    .summary-table { width: 100%; border-collapse: collapse; margin-bottom: 18pt; }
+    .summary-table td { padding: 9pt 14pt; border: 1pt solid #e5e7eb; font-size: 11pt; }
+    .summary-label {
+      color: #6b7280;
+      font-size: 9.5pt;
+      text-transform: uppercase;
+      letter-spacing: 0.4pt;
+      width: 50%;
+    }
+    .summary-value { font-weight: bold; text-align: right; }
+    .val-saldo   { color: #2E6FB7; }
+    .val-entrada { color: #1D9E75; }
+    .val-saida   { color: #C25E3A; }
+    .tx-table { width: 100%; border-collapse: collapse; font-size: 10pt; }
+    .tx-table thead tr { background-color: #f7f8fa; }
+    .tx-table th {
+      padding: 7pt 10pt;
+      text-align: left;
+      font-size: 8.5pt;
+      text-transform: uppercase;
+      letter-spacing: 0.5pt;
+      color: #6b7280;
+      border-top: 1pt solid #e5e7eb;
+      border-bottom: 1pt solid #e5e7eb;
+      font-weight: bold;
+    }
+    .tx-table th.right, .tx-table td.right { text-align: right; }
+    .tx-table tbody tr { border-bottom: 1pt solid #f0f0f0; }
+    .tx-table tbody tr.alt { background-color: #fafaf8; }
+    .tx-table td { padding: 7pt 10pt; vertical-align: middle; }
+    .td-cat { font-size: 9pt; color: #6b7280; }
+    .badge-pdf {
+      font-size: 8pt;
+      font-weight: bold;
+      padding: 2pt 6pt;
+      border-radius: 10pt;
+    }
+    .badge-entrada-pdf { color: #1D9E75; background-color: #e6f7f2; }
+    .badge-saida-pdf   { color: #C25E3A; background-color: #faf0ec; }
+    .val-entrada-pdf   { color: #1D9E75; font-weight: bold; text-align: right; }
+    .val-saida-pdf     { color: #C25E3A; font-weight: bold; text-align: right; }
+    .empty-row td      { text-align: center; color: #9ca3af; padding: 16pt; }
+    .footer {
+      margin-top: 24pt;
+      border-top: 1pt solid #e5e7eb;
+      padding-top: 10pt;
+      font-size: 8.5pt;
+      color: #9ca3af;
+    }
+    .footer-table { width: 100%; }
+    .footer-left  { text-align: left; }
+    .footer-right { text-align: right; }
+  </style>
+</head>
+<body>
+
+  <table class="header-table">
+    <tr>
+      <td class="logo-cell">
+        <div class="logo-mark">AC</div>
+      </td>
+      <td class="brand-cell">
+        <div class="brand-name">ACashController</div>
+        <div class="brand-sub">{{ user.get_full_name|default:user.username }}</div>
+      </td>
+      <td class="report-info-cell">
+        <div class="report-title">Extrato Mensal</div>
+        <div class="report-period">{{ mes_nome }} {{ ano }}</div>
+        <div class="report-user">{{ user.username }}</div>
+      </td>
+    </tr>
+  </table>
+
+  <div class="section-title">Resumo do Período</div>
+  <table class="summary-table">
+    <tr>
+      <td class="summary-label">Saldo Atual</td>
+      <td class="summary-value val-saldo">R$ {{ saldo|floatformat:2 }}</td>
+    </tr>
+    <tr>
+      <td class="summary-label">Total de Entradas</td>
+      <td class="summary-value val-entrada">R$ {{ total_entradas|floatformat:2 }}</td>
+    </tr>
+    <tr>
+      <td class="summary-label">Total de Saídas</td>
+      <td class="summary-value val-saida">R$ {{ total_saidas|floatformat:2 }}</td>
+    </tr>
+  </table>
+
+  <div class="section-title">Transações</div>
+  <table class="tx-table">
+    <thead>
+      <tr>
+        <th style="width:70pt;">Data</th>
+        <th>Descrição</th>
+        <th style="width:90pt;">Categoria</th>
+        <th style="width:60pt;">Tipo</th>
+        <th class="right" style="width:80pt;">Valor</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in transacoes %}
+      <tr class="{% cycle '' 'alt' %}">
+        <td>{{ t.data|date:"d/m/Y" }}</td>
+        <td>{{ t.descricao }}</td>
+        <td class="td-cat">{{ t.categoria.nome }}</td>
+        <td><span class="badge-pdf {% if t.categoria.tipo == 'E' %}badge-entrada-pdf{% else %}badge-saida-pdf{% endif %}">{{ t.tipo_display }}</span></td>
+        <td class="{% if t.categoria.tipo == 'E' %}val-entrada-pdf{% else %}val-saida-pdf{% endif %}">{% if t.categoria.tipo == 'E' %}+{% else %}−{% endif %}R$ {{ t.valor|floatformat:2 }}</td>
+      </tr>
+      {% empty %}
+      <tr class="empty-row"><td colspan="5">Nenhuma transação no período.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="footer">
+    <table class="footer-table">
+      <tr>
+        <td class="footer-left">Gerado em {{ gerado_em|date:"d/m/Y H:i" }}</td>
+        <td class="footer-right">Gerado por ACashController</td>
+      </tr>
+    </table>
+  </div>
+
+</body>
+</html>
