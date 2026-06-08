@@ -7,5 +7,6 @@ urlpatterns = [
     path('', include('usuario.urls')),
     path('', include('financas.urls')),
     path('', include('dashboard.urls')),
+    path('api/', include('api.urls')),
     path('', RedirectView.as_view(pattern_name='dashboard', permanent=False)),
 ]

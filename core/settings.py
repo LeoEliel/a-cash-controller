@@ -22,6 +22,7 @@ INSTALLED_APPS = [
     'financas',
     'usuario',
     'dashboard',
+    'api',
 ]
 
 MIDDLEWARE = [
